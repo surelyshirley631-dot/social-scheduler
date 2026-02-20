@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SocialPlatform {
+  INSTAGRAM
+  TIKTOK
+}
+
+enum PostStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+model User {
+  id        String    @id @default(cuid())
+  name      String?
+  email     String?   @unique
+  image     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  accounts  Account[]
+  posts     Post[]
+}
+
+model Account {
+  id                       String         @id @default(cuid())
+  userId                   String
+  platform                 SocialPlatform
+  platformAccountId        String
+  platformAccountUsername  String?
+  displayName              String?
+  encryptedAccessToken     String         @db.Text
+  encryptedRefreshToken    String?        @db.Text
+  accessTokenExpiresAt     DateTime?
+  refreshTokenExpiresAt    DateTime?
+  longLivedTokenExpiresAt  DateTime?
+  scopes                   String?
+  createdAt                DateTime       @default(now())
+  updatedAt                DateTime       @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  posts  Post[]
+
+  @@index([userId])
+  @@index([platform, platformAccountId])
+  @@unique([userId, platform, platformAccountId])
+}
+
+model Post {
+  id              String      @id @default(cuid())
+  userId          String
+  accountId       String
+  platform        SocialPlatform
+  caption         String?
+  mediaUrl        String
+  scheduledAt     DateTime
+  publishedAt     DateTime?
+  status          PostStatus  @default(PENDING)
+  errorMessage    String?     @db.Text
+  platformPostId  String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([accountId])
+  @@index([status, scheduledAt])
+}
+
