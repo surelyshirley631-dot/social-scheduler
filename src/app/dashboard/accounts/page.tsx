@@ -1,12 +1,8 @@
 import { auth } from "@/lib/auth"
-import { redirect } from "next/navigation"
 import { AccountList } from "@/components/accounts/account-list"
 
 export default async function AccountsPage() {
   const session = await auth()
-  if (!session?.user) {
-    redirect("/api/auth/signin")
-  }
   return (
     <main className="flex h-[100vh] flex-col">
       <header className="flex items-center justify-between border-b px-4 py-2">
@@ -23,4 +19,3 @@ export default async function AccountsPage() {
     </main>
   )
 }
-

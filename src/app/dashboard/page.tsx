@@ -1,13 +1,9 @@
 import { auth } from "@/lib/auth"
-import { redirect } from "next/navigation"
 import { CalendarView } from "@/components/dashboard/calendar-view"
 import { PostEditor } from "@/components/dashboard/post-editor"
 
 export default async function DashboardPage() {
   const session = await auth()
-  if (!session?.user) {
-    redirect("/api/auth/signin")
-  }
   return (
     <main className="flex h-[100vh] flex-col">
       <header className="flex items-center justify-between border-b px-4 py-2">
@@ -27,4 +23,3 @@ export default async function DashboardPage() {
     </main>
   )
 }
-
