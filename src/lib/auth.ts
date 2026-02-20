@@ -1,5 +1,3 @@
-import { prisma } from "@/lib/db"
-
 export type AppSession = {
   user: {
     id: string
@@ -8,16 +6,10 @@ export type AppSession = {
 }
 
 export async function auth(): Promise<AppSession> {
-  const email = "demo@example.com"
-  const user = await prisma.user.upsert({
-    where: { email },
-    update: {},
-    create: { email },
-  })
   return {
     user: {
-      id: user.id,
-      email: user.email,
+      id: "demo-user",
+      email: "demo@example.com",
     },
   }
 }
