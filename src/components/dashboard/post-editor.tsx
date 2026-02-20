@@ -1,17 +1,39 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 type Platform = "INSTAGRAM" | "TIKTOK"
 
-export function PostEditor() {
-  const [scheduledAt, setScheduledAt] = useState("")
+type PostEditorProps = {
+  scheduledAt?: string
+  file?: File | null
+}
+
+export function PostEditor(props: PostEditorProps) {
+  const [scheduledAt, setScheduledAt] = useState(props.scheduledAt ?? "")
   const [caption, setCaption] = useState("")
   const [platforms, setPlatforms] = useState<Platform[]>([])
-  const [file, setFile] = useState<File | null>(null)
+  const [file, setFile] = useState<File | null>(props.file ?? null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+
+  useEffect(() => {
+    if (props.scheduledAt !== undefined) {
+      setScheduledAt(props.scheduledAt)
+    }
+  }, [props.scheduledAt])
+
+  useEffect(() => {
+    if (props.file !== undefined) {
+      setFile(props.file ?? null)
+      if (props.file) {
+        const url = URL.createObjectURL(props.file)
+        setPreviewUrl(url)
+        return () => URL.revokeObjectURL(url)
+      }
+    }
+  }, [props.file])
 
   function togglePlatform(p: Platform) {
     setPlatforms((prev) =>
@@ -21,25 +43,25 @@ export function PostEditor() {
 
   function validate() {
     if (!scheduledAt) {
-      return "请选择发布时间"
+      return "Please select a scheduled time"
     }
     if (!file) {
-      return "请上传图片或视频"
+      return "Please upload an image or video"
     }
     if (platforms.length === 0) {
-      return "请至少选择一个平台"
+      return "Please select at least one platform"
     }
     const isVideo = file.type.startsWith("video/")
     const isImage = file.type.startsWith("image/")
     if (!isVideo && !isImage) {
-      return "仅支持图片或视频文件"
+      return "Only image or video files are supported"
     }
     if (platforms.includes("TIKTOK") && !isVideo) {
-      return "TikTok 仅支持视频文件"
+      return "TikTok only supports video files"
     }
     const maxCaptionLength = 2200
     if (caption.length > maxCaptionLength) {
-      return `文案不能超过 ${maxCaptionLength} 字符`
+      return `Caption cannot exceed ${maxCaptionLength} characters`
     }
     return null
   }
@@ -65,7 +87,7 @@ export function PostEditor() {
     setSubmitting(false)
     if (!res.ok) {
       const text = await res.text()
-      setError(text || "创建排期失败")
+      setError(text || "Failed to create schedule")
       return
     }
     setCaption("")
@@ -88,10 +110,10 @@ export function PostEditor() {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="mb-3 text-base font-semibold">新建排期</div>
+      <div className="mb-3 text-base font-semibold">Create new schedule</div>
       <div className="flex-1 space-y-3 overflow-y-auto">
         <div className="space-y-1 text-xs">
-          <div className="text-gray-600">发布时间</div>
+          <div className="text-gray-600">Scheduled time</div>
           <input
             type="datetime-local"
             value={scheduledAt}
@@ -100,7 +122,7 @@ export function PostEditor() {
           />
         </div>
         <div className="space-y-1 text-xs">
-          <div className="text-gray-600">目标平台</div>
+          <div className="text-gray-600">Target platforms</div>
           <div className="flex gap-2">
             <button
               type="button"
@@ -127,20 +149,20 @@ export function PostEditor() {
           </div>
         </div>
         <div className="space-y-1 text-xs">
-          <div className="text-gray-600">文案</div>
+          <div className="text-gray-600">Caption</div>
           <textarea
             value={caption}
             onChange={(e) => setCaption(e.target.value)}
             rows={4}
             className="w-full rounded border px-2 py-1 text-sm"
-            placeholder="输入文案"
+            placeholder="Write your caption"
           />
           <div className="text-right text-[10px] text-gray-400">
-            {caption.length} 字
+            {caption.length} characters
           </div>
         </div>
         <div className="space-y-1 text-xs">
-          <div className="text-gray-600">媒体文件</div>
+          <div className="text-gray-600">Media file</div>
           <input
             type="file"
             accept="image/*,video/*"
@@ -175,9 +197,8 @@ export function PostEditor() {
         disabled={submitting}
         className="mt-3 w-full rounded bg-black px-4 py-2 text-sm text-white disabled:opacity-60"
       >
-        {submitting ? "保存中..." : "保存排期"}
+        {submitting ? "Saving..." : "Save schedule"}
       </button>
     </div>
   )
 }
-

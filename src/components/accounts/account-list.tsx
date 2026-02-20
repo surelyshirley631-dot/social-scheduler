@@ -21,7 +21,7 @@ export function AccountList() {
     setError(null)
     const res = await fetch("/api/accounts", { cache: "no-store" })
     if (!res.ok) {
-      setError("加载账号失败")
+      setError("Failed to load accounts")
       setLoading(false)
       return
     }
@@ -35,7 +35,9 @@ export function AccountList() {
   }, [])
 
   async function handleRemove(id: string) {
-    const ok = window.confirm("确定要解绑这个账号吗？相关排期也会删除。")
+    const ok = window.confirm(
+      "Disconnect this account? Related scheduled posts will be removed."
+    )
     if (!ok) return
     setRemovingId(id)
     setError(null)
@@ -43,7 +45,7 @@ export function AccountList() {
     setRemovingId(null)
     if (!res.ok) {
       const text = await res.text()
-      setError(text || "解绑失败")
+      setError(text || "Failed to disconnect account")
       return
     }
     setAccounts((prev) => prev.filter((a) => a.id !== id))
@@ -64,9 +66,9 @@ export function AccountList() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <div className="text-base font-semibold">已绑定账号</div>
+          <div className="text-base font-semibold">Connected accounts</div>
           <div className="text-xs text-gray-500">
-            一个用户可以绑定多个 Instagram Business 和 TikTok 账号
+            You can connect multiple Instagram Business and TikTok accounts.
           </div>
         </div>
         <button
@@ -75,14 +77,14 @@ export function AccountList() {
           disabled={loading}
           className="rounded border px-3 py-1 text-xs disabled:opacity-50"
         >
-          {loading ? "刷新中..." : "刷新"}
+          {loading ? "Refreshing..." : "Refresh"}
         </button>
       </div>
       {error && <div className="text-xs text-red-500">{error}</div>}
       <div className="space-y-4">
         <PlatformSection
-          title="Instagram Business 账号"
-          description="用于图片和 Reels 发布"
+          title="Instagram Business account"
+          description="Used for images and Reels publishing"
           accounts={igAccounts}
           removingId={removingId}
           onRemove={handleRemove}
@@ -90,8 +92,8 @@ export function AccountList() {
           badgeClass="bg-pink-100 text-pink-700"
         />
         <PlatformSection
-          title="TikTok 账号"
-          description="用于 TikTok 视频直发"
+          title="TikTok account"
+          description="Used for posting TikTok videos"
           accounts={ttAccounts}
           removingId={removingId}
           onRemove={handleRemove}
@@ -129,11 +131,13 @@ function PlatformSection(props: PlatformSectionProps) {
           onClick={onConnect}
           className="rounded bg-black px-3 py-1 text-xs text-white"
         >
-          绑定新账号
+          Connect new account
         </button>
       </div>
       {accounts.length === 0 ? (
-        <div className="text-[11px] text-gray-400">当前没有绑定账号</div>
+        <div className="text-[11px] text-gray-400">
+          No accounts are connected yet.
+        </div>
       ) : (
         <ul className="space-y-2">
           {accounts.map((a) => (
@@ -160,7 +164,7 @@ function PlatformSection(props: PlatformSectionProps) {
                 disabled={removingId === a.id}
                 className="rounded border px-2 py-1 text-[11px] text-red-600 disabled:opacity-50"
               >
-                {removingId === a.id ? "解绑中..." : "解绑"}
+                {removingId === a.id ? "Disconnecting..." : "Disconnect"}
               </button>
             </li>
           ))}
@@ -169,4 +173,3 @@ function PlatformSection(props: PlatformSectionProps) {
     </div>
   )
 }
-

@@ -6,7 +6,7 @@ export default async function AccountsPage() {
   return (
     <main className="flex h-[100vh] flex-col">
       <header className="flex items-center justify-between border-b px-4 py-2">
-        <div className="text-lg font-semibold">账号管理</div>
+        <div className="text-lg font-semibold">Account management</div>
         <div className="text-xs text-gray-500">
           {session.user?.email}
         </div>

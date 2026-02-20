@@ -22,11 +22,16 @@ type CalendarPost = {
 
 type ViewMode = "month" | "week"
 
-export function CalendarView() {
+type CalendarViewProps = {
+  onDayDrop?: (date: Date, file: File) => void
+}
+
+export function CalendarView(props: CalendarViewProps) {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [viewMode, setViewMode] = useState<ViewMode>("month")
   const [posts, setPosts] = useState<CalendarPost[]>([])
   const [loading, setLoading] = useState(false)
+  const { onDayDrop } = props
 
   useEffect(() => {
     async function load() {
@@ -77,22 +82,22 @@ export function CalendarView() {
             className="rounded border px-2 py-1 text-xs"
             onClick={handlePrev}
           >
-            上一页
+            Previous
           </button>
           <button
             className="rounded border px-2 py-1 text-xs"
             onClick={() => setCurrentDate(new Date())}
           >
-            今天
+            Today
           </button>
           <button
             className="rounded border px-2 py-1 text-xs"
             onClick={handleNext}
           >
-            下一页
+            Next
           </button>
           <div className="ml-4 text-sm font-semibold">
-            {format(currentDate, "yyyy年MM月")}
+            {format(currentDate, "MMMM yyyy")}
           </div>
         </div>
         <div className="flex gap-2">
@@ -102,7 +107,7 @@ export function CalendarView() {
             }`}
             onClick={() => setViewMode("month")}
           >
-            月视图
+            Month view
           </button>
           <button
             className={`rounded border px-3 py-1 text-xs ${
@@ -110,12 +115,12 @@ export function CalendarView() {
             }`}
             onClick={() => setViewMode("week")}
           >
-            周视图
+            Week view
           </button>
         </div>
       </div>
       <div className="grid grid-cols-7 border-b text-center text-[11px] text-gray-500">
-        {["周一", "周二", "周三", "周四", "周五", "周六", "周日"].map((d) => (
+        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
           <div key={d} className="border-r px-2 py-1 last:border-r-0">
             {d}
           </div>
@@ -134,6 +139,24 @@ export function CalendarView() {
               className={`flex flex-col border-r border-b px-1 py-1 text-xs last:border-r-0 ${
                 isSameMonth(day, currentDate) ? "bg-white" : "bg-gray-50"
               } ${isSameDay(day, new Date()) ? "bg-gray-100" : ""}`}
+              onDragOver={(e) => {
+                if (!onDayDrop) return
+                if (
+                  Array.from(e.dataTransfer.items).some(
+                    (item) => item.kind === "file"
+                  )
+                ) {
+                  e.preventDefault()
+                }
+              }}
+              onDrop={(e) => {
+                if (!onDayDrop) return
+                const file = e.dataTransfer.files?.[0]
+                if (file) {
+                  e.preventDefault()
+                  onDayDrop(day, file)
+                }
+              }}
             >
               <div className="flex items-center justify-between">
                 <span>{format(day, "d")}</span>
@@ -167,7 +190,7 @@ export function CalendarView() {
                 ))}
                 {dayPosts.length > 3 && (
                   <div className="text-[10px] text-gray-400">
-                    +{dayPosts.length - 3} 条
+                    +{dayPosts.length - 3} more
                   </div>
                 )}
               </div>
@@ -177,7 +200,7 @@ export function CalendarView() {
       </div>
       {loading && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-white/60 text-xs text-gray-500">
-          加载中…
+          Loading…
         </div>
       )}
     </div>
@@ -199,4 +222,3 @@ function buildDays(date: Date, mode: ViewMode) {
   const range = getRange(date, mode)
   return eachDayOfInterval({ start: range.from, end: range.to })
 }
-
